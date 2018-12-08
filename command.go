@@ -5,6 +5,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"fmt"
 )
 
 // Command represents an application command. Commands can be added to the
@@ -43,7 +44,7 @@ type Commander interface {
 	// args argument contains the remaining command line arguments. The
 	// error that Execute returns will be eventually passed out of the
 	// Parse method of the Parser.
-	Execute(args []string) error
+	Execute(args []string) ([]string, error)
 }
 
 // Usage is an interface which can be implemented to show a custom usage string
@@ -67,7 +68,7 @@ type lookup struct {
 // Usage interfaces.
 func (c *Command) AddCommand(command string, shortDescription string, longDescription string, data interface{}) (*Command, error) {
 	cmd := newCommand(command, shortDescription, longDescription, data)
-
+	fmt.Println("in AddCommand func",data)
 	cmd.parent = c
 
 	if err := cmd.scan(); err != nil {

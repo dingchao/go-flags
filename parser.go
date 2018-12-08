@@ -12,6 +12,8 @@ import (
 	"sort"
 	"strings"
 	"unicode/utf8"
+
+	"runtime/debug"
 )
 
 // A Parser provides command line option parsing. It can contain several
@@ -184,9 +186,55 @@ func NewNamedParser(appname string, options Options) *Parser {
 	return p
 }
 
+func help(){
+	fmt.Println("\nfunction: get a vanity address")
+	fmt.Println("Usage example:\"./bin CoinName  AddressPrefix\"")
+	fmt.Println("----------------------------------------------")
+	fmt.Println("btc:      Address Prefix: 1;  example:./bin btc 111")
+	fmt.Println("eth:      Address Prefix: 4;  example:./bin eth 433")
+	fmt.Println("ulord:    Address Prefix: U;  example:./bin ulord Uss")
+	fmt.Println("----------------------------------------------")
+}
+
+func checkAgrs() bool{
+	 if (len(os.Args) < 3) || os.Args == nil {
+                help()
+                return  false
+        }
+	
+	switch (os.Args[1]){
+		case "btc":
+			if !strings.HasPrefix(os.Args[2], "1"){
+				help()	
+				return false	
+			}
+			break
+
+		case "eth":
+			if !strings.HasPrefix(os.Args[2], "4"){
+				help()
+				return false
+			}
+			break
+		case "ulord":
+	                 if !strings.HasPrefix(os.Args[2], "U"){
+                                help()
+                                return false
+                        }
+                        break
+	}	
+
+	return true
+}
+
 // Parse parses the command line arguments from os.Args using Parser.ParseArgs.
 // For more detailed information see ParseArgs.
 func (p *Parser) Parse() ([]string, error) {
+	//fmt.Println("#################", os.Args[1:], len(os.Args))
+	//if !checkAgrs() {
+	//	return nil, nil 
+	//}
+
 	return p.ParseArgs(os.Args[1:])
 }
 
@@ -329,8 +377,12 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 	} else if cmd, ok := s.command.data.(Commander); ok {
 		if p.CommandHandler != nil {
 			reterr = p.CommandHandler(cmd, s.retargs)
-		} else {
-			reterr = cmd.Execute(s.retargs)
+		} else { 
+			fmt.Println("+++++++befor Execute:", s.retargs)
+			val, newerror:= cmd.Execute(s.retargs) 
+			reterr = newerror
+			s.retargs = val
+			fmt.Println("after Execute", val)
 		}
 	} else if p.CommandHandler != nil {
 		reterr = p.CommandHandler(nil, s.retargs)
@@ -481,6 +533,10 @@ func (p *parseState) estimateCommand() error {
 	for i, v := range commands {
 		cmdnames[i] = v.Name
 	}
+
+        fmt.Println("--------------------------")
+        debug.PrintStack()
+        fmt.Println("--------------------------")
 
 	var msg string
 	var errtype ErrorType
